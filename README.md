@@ -1,5 +1,9 @@
 # 🌤️ Pipeline ETL - Dados Climáticos de São Paulo
 
+[![YouTube](https://img.shields.io/badge/YouTube-@vbluuiza-red?style=flat&logo=youtube)](https://youtube.com/@vbluuiza)
+[![Instagram](https://img.shields.io/badge/Instagram-@vbluuiza-E4405F?style=flat&logo=instagram)](https://www.instagram.com/vbluuiza)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-vbluuiza-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/vbluuiza/)
+
 > Pipeline ETL automatizado para coleta, transformação e armazenamento de dados meteorológicos em tempo real da cidade de São Paulo, orquestrado com Apache Airflow e Docker.
 
 ---
@@ -27,86 +31,72 @@ O pipeline coleta dados meteorológicos da API do OpenWeatherMap a cada hora, tr
 
 ## 🏗️ Arquitetura do Pipeline
 
+```mermaid
 graph LR
-    subgraph Fontes de Dados [☁️ Externo]
-        API[OpenWeatherMap API]
-    end
-graph LR
-    subgraph FontesDeDados ["☁️ Externo"]
-        API["OpenWeatherMap API"]
+    subgraph Fontes["Fontes de Dados"]
+        API["☁️ OpenWeatherMap API"]
     end
 
-    subgraph Infraestrutura ["🐳 Docker Compose Host"]
-        subgraph Orchestration ["Orquestração"]
-            AF_W["🌪️ Airflow<br/>Webserver"]
-            AF_S["🌪️ Airflow<br/>Scheduler"]
-            AF_C["🌪️ Celery<br/>Executor"]
+    subgraph Infra["Infraestrutura Docker"]
+        AF["🌪️ Apache Airflow"]
+        
+        subgraph ETL["Pipeline Python"]
+            EXT["📥 Extract"] --> TRF["🔄 Transform"]
+            TRF --> LD["💾 Load"]
         end
         
-        subgraph ETL ["🐍 Pipeline Python"]
-            EXT["📥 Extract<br/>Requests"] --> TRF["🔄 Transform<br/>Pandas & Parquet"]
-            TRF --> LD["💾 Load<br/>SQLAlchemy"]
-        end
+        DB[("🐘 PostgreSQL")]
+        MB["📊 Metabase"]
         
-        subgraph Armazenamento ["🐘 Data Warehouse"]
-            DB[("PostgreSQL")]
-        end
-
-        subgraph Dataviz ["📊 Visualização"]
-            MB["Metabase"]
-        end
-        
-        AF_S -.->|"Agenda<br/>0 */1 * * *"| AF_C
-        AF_C -.->|"Orquestra"| ETL
+        AF -.->|"Orquestra (a cada 1h)"| ETL
     end
 
-    API ==>|"JSON Response"| EXT
-    LD ==>|"Insert SQL"| DB
-    DB ==>|"Read Data"| MB
+    API ==>|"Retorna JSON"| EXT
+    LD ==>|"Insert de Dados"| DB
+    DB ==>|"Leitura para Dashboards"| MB
 
-    style API fill:#ff9900,stroke:#333,stroke-width:2px,color:#fff
-    style AF_W fill:#e9f5f9,stroke:#017cee,stroke-width:1px
-    style AF_S fill:#e9f5f9,stroke:#017cee,stroke-width:2px
-    style AF_C fill:#e9f5f9,stroke:#017cee,stroke-width:1px
-    style ETL fill:#fff,stroke:#333,stroke-width:1px
-    style EXT fill:#fff,stroke:#333,stroke-width:1px
-    style TRF fill:#fff,stroke:#333,stroke-width:1px
-    style LD fill:#fff,stroke:#333,stroke-width:1px
-    style DB fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
-    style MB fill:#fff,stroke:#fe4e15,stroke-width:2px,color:#fe4e15
-    style Infraestrutura fill:#f4f4f4,stroke:#0db7ed,stroke-width:2px,stroke-dasharray: 5 5
----
-
-## 🛠️ Stack Tecnológica
-
-### Core e Infraestrutura
-* **Python 3.10+** - Linguagem principal
-* **Apache Airflow (CeleryExecutor)** - Orquestração do pipeline
-* **PostgreSQL 16** - Banco de dados relacional (Data Warehouse)
-* **Docker & Docker Compose** - Containerização e isolamento de ambiente
-* **Redis** - Message broker para as tarefas do Celery
-
-### Bibliotecas Python (`uv.lock`)
-* **pandas** - Transformação, limpeza e manipulação de dados
-* **requests** - Extração de dados via requisições HTTP
-* **SQLAlchemy & psycopg2-binary** - Conexão e modelagem do banco de dados
-* **python-dotenv** - Gerenciamento seguro de credenciais
-
----
-
-## 🚀 Instalação e Configuração
-
-### 1. Pré-requisitos
-* Git instalado
-* Docker e Docker Compose instalados na máquina (ou WSL)
-* Gerenciador de pacotes `uv` (opcional, mas recomendado para testes locais)
-
-### 2. Configuração do Ambiente e Credenciais
-Crie um arquivo `.env` dentro da pasta `config/`:
-
-```env
-# config/.env
+    style Fontes fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style Infra fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
+    style ETL fill:#ffffff,stroke:#333,stroke-width:1px
+    style DB fill:#3366cc,color:#fff
+    style MB fill:#fe4e15,color:#fff
 ```
+
+🛠️ Stack Tecnológica
+Core e Infraestrutura
+Python 3.10+ - Linguagem principal
+
+Apache Airflow (CeleryExecutor) - Orquestração do pipeline
+
+PostgreSQL 16 - Banco de dados relacional (Data Warehouse)
+
+Docker & Docker Compose - Containerização e isolamento de ambiente
+
+Redis - Message broker para as tarefas do Celery
+
+Bibliotecas Python (uv.lock)
+pandas - Transformação, limpeza e manipulação de dados
+
+requests - Extração de dados via requisições HTTP
+
+SQLAlchemy & psycopg2-binary - Conexão e modelagem do banco de dados
+
+python-dotenv - Gerenciamento seguro de credenciais
+
+🚀 Instalação e Configuração
+1. Pré-requisitos
+Git instalado
+
+Docker e Docker Compose instalados na máquina (ou WSL)
+
+Gerenciador de pacotes uv (opcional, mas recomendado para testes locais)
+
+2. Configuração do Ambiente e Credenciais
+Crie um arquivo .env dentro da pasta config/:
+
+Snippet de código
+# config/.env
+
 # Chave da API do OpenWeatherMap
 API_KEY=sua_chave_api_aqui
 
@@ -114,7 +104,7 @@ API_KEY=sua_chave_api_aqui
 user=airflow
 password=airflow
 database=airflow
-⚠️ Atenção: O arquivo .env está no .gitignore e nunca deve ser "commitado".
+⚠️ Atenção: O arquivo .env está no .gitignore e nunca deve ser commitado.
 
 3. Configuração de Permissões do Docker (Linux/WSL)
 Para evitar problemas de permissão de pastas com o Airflow, crie um arquivo .env na raiz do projeto contendo o seu User ID:
@@ -148,11 +138,11 @@ Faz a requisição HTTP GET para a API do OpenWeatherMap. Possui validação de 
 🔄 2. Transform (src/transform_data.py)
 Utiliza pandas para ler o JSON, aplicar json_normalize nas colunas aninhadas e limpar a estrutura.
 
-Converte temperaturas de Kelvin/Fahrenheit para Celsius (via API parameters).
+Converte as temperaturas conforme a API configuration.
 
 Converte os campos Unix Timestamp (dt, sunrise, sunset) para o timezone correto (America/Sao_Paulo).
 
-Salva os dados transformados em data/temp_data.parquet para otimizar o transporte de dados no Airflow (substituindo o uso pesado de XComs).
+Salva os dados transformados em data/temp_data.parquet para otimizar o transporte de dados no Airflow.
 
 💾 3. Load (src/load_data.py)
 Lê o arquivo Parquet gerado na etapa anterior e estabelece conexão com o PostgreSQL via SQLAlchemy. Carrega os dados na tabela sp_weather e retorna um log de validação com o total de registros inseridos.
@@ -164,13 +154,7 @@ Causa: O container do Airflow não sabe onde os módulos estão.
 
 Solução: O docker-compose.yaml deste projeto já mapeia o volume da pasta src. Certifique-se de que a variável de ambiente PYTHONPATH: /opt/airflow está declarada na secção x-airflow-common do Docker Compose.
 
-2. Erro de conexão com o Banco de Dados (Connection Refused)
-
-Causa: Conflito de rede entre o container e o host.
-
-Solução: No arquivo src/load_data.py, se o código estiver a rodar dentro do Airflow via Docker, a variável host deve ser 'postgres' (o nome do serviço no docker-compose), e não 'localhost'.
-
-3. Como consultar os dados no banco?
+2. Como consultar os dados no banco?
 Você pode acessar o banco do Airflow rodando o comando interativo do Docker:
 
 Bash
