@@ -70,6 +70,7 @@ Plaintext
 ├── docker-compose.yaml     # Infraestrutura em containers (Airflow, Postgres, Redis)
 ├── pyproject.toml / uv.lock# Controle de dependências do Python
 └── main.py                 # Script para execução local e debug (sem Airflow)
+
 🔄 Fluxo de Processamento (ETL)
 Extract (src/extract_data.py): * Conecta à API do OpenWeatherMap via requisição HTTP.
 
