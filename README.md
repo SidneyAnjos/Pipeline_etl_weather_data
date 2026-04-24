@@ -108,9 +108,9 @@ Gerenciador de pacotes uv (opcional, mas recomendado para testes locais)
 Crie um arquivo .env dentro da pasta config/:
 
 Snippet de código
-# config/.env
+config/.env
 
-# Chave da API do OpenWeatherMap
+Chave da API do OpenWeatherMap
 API_KEY=sua_chave_api_aqui
 
 # Credenciais do PostgreSQL (Airflow)
@@ -160,7 +160,7 @@ Salva os dados transformados em data/temp_data.parquet para otimizar o transport
 💾 3. Load (src/load_data.py)
 Lê o arquivo Parquet gerado na etapa anterior e estabelece conexão com o PostgreSQL via SQLAlchemy. Carrega os dados na tabela sp_weather e retorna um log de validação com o total de registros inseridos.
 
-🐛 Troubleshooting Comum
+# 🐛 Troubleshooting Comum
 1. Erro ModuleNotFoundError: No module named 'src' no Airflow
 
 Causa: O container do Airflow não sabe onde os módulos estão.
