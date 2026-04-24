@@ -31,34 +31,38 @@ graph LR
     subgraph Fontes de Dados [☁️ Externo]
         API[OpenWeatherMap API]
     end
-```mermaid
-    subgraph Infraestrutura [🐳 Docker Compose Host]
-        subgraph Orchestration [Orquestração]
-            AF_W[🌪️ Airflow<br/>Webserver]
-            AF_S[🌪️ Airflow<br/>Scheduler]
-            AF_C[🌪️ Celery<br/>Executor]
-        end
-        
-        subgraph ETL [🐍 Pipeline Python]
-            EXT[📥 Extract<br/>Requests] --> TRF[🔄 Transform<br/>Pandas & Parquet]
-            TRF --> LD[💾 Load<br/>SQLAlchemy]
-        end
-        
-        subgraph Armazenamento [🐘 Data Warehouse]
-            DB[(PostgreSQL)]
-        end
-
-        subgraph Dataviz [📊 Visualização]
-            MB[Metabase]
-        end
-        
-        AF_S -.->|Agenda<br/>0 */1 * * *| AF_C
-        AF_C -.->|Orquestra| ETL
+graph LR
+    subgraph FontesDeDados ["☁️ Externo"]
+        API["OpenWeatherMap API"]
     end
 
-    API ==>|JSON Response| EXT
-    LD ==>|Insert SQL| DB
-    DB ==>|Read Data| MB
+    subgraph Infraestrutura ["🐳 Docker Compose Host"]
+        subgraph Orchestration ["Orquestração"]
+            AF_W["🌪️ Airflow<br/>Webserver"]
+            AF_S["🌪️ Airflow<br/>Scheduler"]
+            AF_C["🌪️ Celery<br/>Executor"]
+        end
+        
+        subgraph ETL ["🐍 Pipeline Python"]
+            EXT["📥 Extract<br/>Requests"] --> TRF["🔄 Transform<br/>Pandas & Parquet"]
+            TRF --> LD["💾 Load<br/>SQLAlchemy"]
+        end
+        
+        subgraph Armazenamento ["🐘 Data Warehouse"]
+            DB[("PostgreSQL")]
+        end
+
+        subgraph Dataviz ["📊 Visualização"]
+            MB["Metabase"]
+        end
+        
+        AF_S -.->|"Agenda<br/>0 */1 * * *"| AF_C
+        AF_C -.->|"Orquestra"| ETL
+    end
+
+    API ==>|"JSON Response"| EXT
+    LD ==>|"Insert SQL"| DB
+    DB ==>|"Read Data"| MB
 
     style API fill:#ff9900,stroke:#333,stroke-width:2px,color:#fff
     style AF_W fill:#e9f5f9,stroke:#017cee,stroke-width:1px
@@ -71,7 +75,6 @@ graph LR
     style DB fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
     style MB fill:#fff,stroke:#fe4e15,stroke-width:2px,color:#fe4e15
     style Infraestrutura fill:#f4f4f4,stroke:#0db7ed,stroke-width:2px,stroke-dasharray: 5 5
-```
 ---
 
 ## 🛠️ Stack Tecnológica
