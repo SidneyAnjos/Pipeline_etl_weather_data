@@ -113,7 +113,7 @@ config/.env
 Chave da API do OpenWeatherMap
 API_KEY=sua_chave_api_aqui
 
-# Credenciais do PostgreSQL (Airflow)
+Credenciais do PostgreSQL (Airflow)
 user=airflow
 password=airflow
 database=airflow
