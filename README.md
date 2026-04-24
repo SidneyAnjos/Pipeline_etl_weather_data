@@ -46,20 +46,17 @@ graph LR
         end
         
         DB[("🐘 PostgreSQL")]
-        MB["📊 Metabase"]
         
         AF -.->|"Orquestra (a cada 1h)"| ETL
     end
 
     API ==>|"Retorna JSON"| EXT
     LD ==>|"Insert de Dados"| DB
-    DB ==>|"Leitura para Dashboards"| MB
 
     style Fontes fill:#f9f9f9,stroke:#333,stroke-width:2px
     style Infra fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
     style ETL fill:#ffffff,stroke:#333,stroke-width:1px
     style DB fill:#3366cc,color:#fff
-    style MB fill:#fe4e15,color:#fff
 ```
 
 🛠️ Stack Tecnológica
