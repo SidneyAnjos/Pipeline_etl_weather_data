@@ -94,8 +94,11 @@ SQLAlchemy & psycopg2-binary - Conexão e modelagem do banco de dados
 python-dotenv - Gerenciamento seguro de credenciais
 
 🚀 Instalação e Configuração
-1. Pré-requisitos
+1. Pré-requisitos:
+
 Git instalado
+
+Postegresql
 
 Docker e Docker Compose instalados na máquina (ou WSL)
 
