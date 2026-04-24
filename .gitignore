@@ -1,0 +1,47 @@
+# =========================
+# 🔒 SEGURANÇA E CREDENCIAIS (O MAIS IMPORTANTE)
+# =========================
+.env
+config/.env
+*.key
+*.pem
+
+# =========================
+# 🐍 PYTHON / AMBIENTES
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+
+# =========================
+# 📊 DADOS DO PROJETO (CACHE/RAW)
+# =========================
+# Ignora a pasta de dados local para não subir seus arquivos JSON pesados para o GitHub
+/data/
+*.json
+*.csv
+*.parquet
+
+# =========================
+# 💻 IDEs E SISTEMAS OPERACIONAIS
+# =========================
+# Ignora configurações do seu VS Code ou arquivos ocultos do Windows/Mac
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# =========================
+# 🌬️ APACHE AIRFLOW (Para o futuro)
+# =========================
+# Se você for configurar o Airflow localmente depois, ele gera esses arquivos:
+logs/
+airflow.cfg
+airflow.db
+webserver_config.py
