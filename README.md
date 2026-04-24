@@ -1,35 +1,17 @@
-# 🌤️ Pipeline ETL - Dados Climáticos de São Paulo
+# 🌤️ Pipeline ETL - Dados Meteorológicos (São Paulo/BR)
 
-[![YouTube](https://img.shields.io/badge/YouTube-@vbluuiza-red?style=flat&logo=youtube)](https://youtube.com/@vbluuiza)
-[![Instagram](https://img.shields.io/badge/Instagram-@vbluuiza-E4405F?style=flat&logo=instagram)](https://www.instagram.com/vbluuiza)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-vbluuiza-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/vbluuiza/)
+> **Status do Projeto:** Concluído ✅
 
-> Pipeline ETL automatizado para coleta, transformação e armazenamento de dados meteorológicos em tempo real da cidade de São Paulo, orquestrado com Apache Airflow e Docker.
+Um pipeline de dados de ponta a ponta (End-to-End) construído para extrair, transformar e carregar dados climáticos em tempo real da cidade de São Paulo, utilizando as melhores práticas de Engenharia de Dados, orquestração em containers e modelagem relacional.
 
 ---
 
-## 📋 Índice
+## 🎯 Objetivo
+O objetivo deste projeto é construir uma infraestrutura de dados resiliente e automatizada capaz de consumir dados da API do OpenWeatherMap, normalizar estruturas JSON complexas, realizar conversões de fuso horário e carregar os dados em um Data Warehouse (PostgreSQL) para viabilizar análises climáticas futuras.
 
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Arquitetura do Pipeline](#-arquitetura-do-pipeline)
-- [Stack Tecnológica](#-stack-tecnológica)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Instalação e Configuração](#-instalação-e-configuração)
-- [Como Executar](#-como-executar)
-- [Detalhamento das Etapas (ETL)](#-detalhamento-das-etapas)
-- [Troubleshooting Comum](#-troubleshooting)
+## 🏗️ Arquitetura de Dados
 
----
-
-## 🎯 Sobre o Projeto
-
-Este projeto demonstra a construção de um **pipeline ETL completo** utilizando as melhores práticas de Engenharia de Dados. 
-
-O pipeline coleta dados meteorológicos da API do OpenWeatherMap a cada hora, transforma os dados de um JSON aninhado para um formato tabular estruturado (salvando temporariamente em `.parquet` para performance), e os carrega em um banco de dados PostgreSQL para análises futuras.
-
----
-
-## 🏗️ Arquitetura do Pipeline
+O fluxo de dados foi desenhado para ser escalável, isolado e de fácil manutenção, utilizando Apache Airflow rodando em Docker para a orquestração.
 
 ```mermaid
 graph LR
@@ -37,21 +19,21 @@ graph LR
         API["☁️ OpenWeatherMap API"]
     end
 
-    subgraph Infra["Infraestrutura Docker"]
+    subgraph Infra["Infraestrutura (Docker Compose)"]
         AF["🌪️ Apache Airflow"]
         
-        subgraph ETL["Pipeline Python"]
-            EXT["📥 Extract"] --> TRF["🔄 Transform"]
+        subgraph ETL["Pipeline Python (DAG)"]
+            EXT["📥 Extract"] --> TRF["🔄 Transform (Parquet)"]
             TRF --> LD["💾 Load"]
         end
         
-        DB[("🐘 PostgreSQL")]
+        DB[("🐘 PostgreSQL (DW)")]
         
-        AF -.->|"Orquestra (a cada 1h)"| ETL
+        AF -.->|"Schedule: 0 */1 * * *"| ETL
     end
 
-    API ==>|"Retorna JSON"| EXT
-    LD ==>|"Insert de Dados"| DB
+    API ==>|"Requisição HTTP (JSON)"| EXT
+    LD ==>|"Insert SQLAlchemy"| DB
 
     style Fontes fill:#f9f9f9,stroke:#333,stroke-width:2px
     style Infra fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
@@ -60,100 +42,93 @@ graph LR
 ```
 
 🛠️ Stack Tecnológica
-Core e Infraestrutura
-Python 3.10+ - Linguagem principal
+Linguagem: Python 3.10+
 
-Apache Airflow (CeleryExecutor) - Orquestração do pipeline
+Orquestração: Apache Airflow
 
-PostgreSQL 16 - Banco de dados relacional (Data Warehouse)
+Armazenamento / DW: PostgreSQL 16
 
-Docker & Docker Compose - Containerização e isolamento de ambiente
+Processamento: Pandas, requests, sqlalchemy
 
-Redis - Message broker para as tarefas do Celery
+Containerização: Docker & Docker Compose
 
-Bibliotecas Python (uv.lock)
-pandas - Transformação, limpeza e manipulação de dados
+Gestão de Dependências: uv (Ultra-fast Python package installer)
 
-requests - Extração de dados via requisições HTTP
+📁 Estrutura do Projeto
+A organização do código segue o padrão de módulos para facilitar testes e manutenção:
 
-SQLAlchemy & psycopg2-binary - Conexão e modelagem do banco de dados
+Plaintext
+├── config/                 # Arquivos de configuração e variáveis de ambiente (.env)
+├── dags/                   # DAGs do Apache Airflow (orquestração)
+│   └── weather_dag.py
+├── data/                   # Armazenamento temporário de dados (JSON RAW e Parquet)
+├── notebook/               # Jupyter Notebooks para Análise Exploratória (EDA)
+├── src/                    # Scripts core do pipeline ETL
+│   ├── extract_data.py
+│   ├── transform_data.py
+│   └── load_data.py
+├── docker-compose.yaml     # Infraestrutura em containers (Airflow, Postgres, Redis)
+├── pyproject.toml / uv.lock# Controle de dependências do Python
+└── main.py                 # Script para execução local e debug (sem Airflow)
+🔄 Fluxo de Processamento (ETL)
+Extract (src/extract_data.py): * Conecta à API do OpenWeatherMap via requisição HTTP.
 
-python-dotenv - Gerenciamento seguro de credenciais
+Valida a resposta e salva o dado bruto como um artefato JSON em disco (conceito de Data Lake / Landing Zone) para garantir rastreabilidade.
 
-🚀 Instalação e Configuração
+Transform (src/transform_data.py):
+
+Lê o arquivo JSON e utiliza o Pandas (json_normalize) para "achatar" os dados aninhados.
+
+Limpa colunas desnecessárias e renomeia variáveis para o padrão de negócio.
+
+Converte timestamps (UTC) para o fuso horário local (America/Sao_Paulo).
+
+Best Practice: Salva os dados transformados em formato .parquet para transitar entre as tasks do Airflow com alta performance e tipagem segura.
+
+Load (src/load_data.py):
+
+Lê o arquivo .parquet.
+
+Abre conexão com o PostgreSQL via SQLAlchemy.
+
+Realiza o append dos dados na tabela sp_weather e emite logs de contagem de registros para auditoria.
+
+🚀 Como Executar o Projeto
 1. Pré-requisitos
-Git instalado
+Git instalado.
 
-Docker e Docker Compose instalados na máquina (ou WSL)
+Docker e Docker Compose instalados e em execução.
 
-Gerenciador de pacotes uv (opcional, mas recomendado para testes locais)
+Criar sua chave de API gratuita no OpenWeatherMap.
 
-2. Configuração do Ambiente e Credenciais
-Crie um arquivo .env dentro da pasta config/:
+2. Configurando o Ambiente
+Clone o repositório e crie o arquivo de variáveis de ambiente:
+
+Bash
+git clone [https://github.com/SidneyAnjos/Pipeline_etl_weather_data.git](https://github.com/SidneyAnjos/Pipeline_etl_weather_data.git)
+cd Pipeline_etl_weather_data
+Crie o arquivo config/.env e adicione suas credenciais:
 
 Snippet de código
 # config/.env
-
-# Chave da API do OpenWeatherMap
-API_KEY=sua_chave_api_aqui
-
-# Credenciais do PostgreSQL (Airflow)
+API_KEY=sua_chave_aqui_do_openweathermap
 user=airflow
 password=airflow
 database=airflow
-⚠️ Atenção: O arquivo .env está no .gitignore e nunca deve ser commitado.
-
-3. Configuração de Permissões do Docker (Linux/WSL)
-Para evitar problemas de permissão de pastas com o Airflow, crie um arquivo .env na raiz do projeto contendo o seu User ID:
+Configure as permissões de usuário para o Airflow no Docker (Linux/WSL):
 
 Bash
 echo -e "AIRFLOW_UID=$(id -u)" > .env
-4. Inicializando os Containers
-No terminal, execute o comando para baixar as imagens e subir a infraestrutura:
-
+3. Subindo a Infraestrutura
 Bash
 docker-compose up -d
-Aguarde alguns minutos. Você pode verificar se tudo está rodando com docker-compose ps.
+Aguarde alguns minutos para que os containers (Webserver, Scheduler, Worker, Postgres, Redis) fiquem healthy.
 
-🎮 Como Executar
-1. Acesso ao Apache Airflow
-Abra o seu navegador e acesse: http://localhost:8080
+4. Orquestrando o Pipeline
+Acesse a interface do Airflow em: http://localhost:8080 (Usuário: airflow / Senha: airflow).
 
-Usuário: airflow | Senha: airflow
+Ative a DAG youtube_weather_pipeline no toggle lateral.
 
-2. Ativação da DAG
-Localize a DAG youtube_weather_pipeline.
+A DAG executará o ETL automaticamente a cada hora (0 */1 * * *).
 
-Clique no botão de Unpause (toggle) e depois em Trigger DAG (▶️).
-
-O pipeline extrairá o clima de São Paulo, fará o tratamento e salvará no banco a cada 1 hora (0 */1 * * *).
-
-🔍 Detalhamento das Etapas (ETL)
-📥 1. Extract (src/extract_data.py)
-Faz a requisição HTTP GET para a API do OpenWeatherMap. Possui validação de status code e salva um snapshot bruto (RAW) dos dados em data/weather_data.json como garantia de linhagem de dados.
-
-🔄 2. Transform (src/transform_data.py)
-Utiliza pandas para ler o JSON, aplicar json_normalize nas colunas aninhadas e limpar a estrutura.
-
-Converte as temperaturas conforme a API configuration.
-
-Converte os campos Unix Timestamp (dt, sunrise, sunset) para o timezone correto (America/Sao_Paulo).
-
-Salva os dados transformados em data/temp_data.parquet para otimizar o transporte de dados no Airflow.
-
-💾 3. Load (src/load_data.py)
-Lê o arquivo Parquet gerado na etapa anterior e estabelece conexão com o PostgreSQL via SQLAlchemy. Carrega os dados na tabela sp_weather e retorna um log de validação com o total de registros inseridos.
-
-🐛 Troubleshooting Comum
-1. Erro ModuleNotFoundError: No module named 'src' no Airflow
-
-Causa: O container do Airflow não sabe onde os módulos estão.
-
-Solução: O docker-compose.yaml deste projeto já mapeia o volume da pasta src. Certifique-se de que a variável de ambiente PYTHONPATH: /opt/airflow está declarada na secção x-airflow-common do Docker Compose.
-
-2. Como consultar os dados no banco?
-Você pode acessar o banco do Airflow rodando o comando interativo do Docker:
-
-Bash
-docker-compose exec postgres psql -U airflow -d airflow
-Dentro do terminal SQL, execute: SELECT * FROM sp_weather;
+Desenvolvido por Sidney Anjos.
